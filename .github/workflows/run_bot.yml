@@ -1,10 +1,8 @@
 name: Run SD Alert Bot
-
 on:
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
-
 jobs:
   run-bot:
     runs-on: ubuntu-latest
@@ -14,7 +12,18 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install yfinance requests pandas numpy
-      - run: python sd_alert_bot.py
+      - name: Fix quotes in bot file
+        run: |
+          python3 -c "
+          import re
+          with open('sd_alert_bot.py','r') as f:
+              code = f.read()
+          code = code.replace(chr(8220),chr(34)).replace(chr(8221),chr(34)).replace(chr(8216),chr(39)).replace(chr(8217),chr(39))
+          with open('sd_alert_bot.py','w') as f:
+              f.write(code)
+          print('Quotes fixed')
+          "
+      - run: python3 sd_alert_bot.py
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

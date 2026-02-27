@@ -1,71 +1,60 @@
-elif zone["type"] == "DEMAND":
-            trade_dir = "SELL"
-            trend_ok = d1_trend == "BEARISH"
-            sl = zone["bottom"] + RETEST_PIPS * 3
-            tp = zone["bottom"] - (RETEST_PIPS * 9)
-            note = "Broken Demand retested - Old Support now Resistance - Nathan SELLS here"
-
-        lot = calc_lot_size(price, sl, pair)
-        risk_usd = round(ACCOUNT_SIZE * RISK_PERCENT / 100, 2)
-
-        if trend_ok and session_ok and news_ok and stars >= 3:
-            validity = "VALID SETUP"
+msg("BREAKOUT - " + pair + "\nBEARISH BREAKOUT\nZone: " + label + "\nLevel: " + str(round(z["bottom"], 5)) + "\nPrice: " + str(round(price, 5)) + "\nD1: " + d1 + "\nWait for RETEST then SELL")
+        elif at_zone:
+            aid = zid + "_touch"
+            if now - alerts.get(aid, 0) < COOLDOWN:
+                continue
+            if z["type"] == "SUPPLY":
+                tdir = "SELL"
+                sl = z["top"] + PIPS * 3
+                tp = z["bottom"] - PIPS * 9
+                trend_ok = d1 == "BEARISH"
+                note = "Unbroken Supply - Nathan SELLS here"
+            else:
+                tdir = "BUY"
+                sl = z["bottom"] - PIPS * 3
+                tp = z["top"] + PIPS * 9
+                trend_ok = d1 == "BULLISH"
+                note = "Unbroken Demand - Nathan BUYS here"
+            alerts[aid] = now
+            state["alerts"] = alerts
+            valid = "VALID" if trend_ok and sess else "WEAK - check trend and session"
+            msg("ZONE ALERT - " + pair + "\n" + valid + "\n" + tdir + " - " + note + "\nZone: " + label + "\nPrice: " + str(round(price, 5)) + "\nSL: " + str(round(sl, 5)) + "\nTP: " + str(round(tp, 5)) + "\nLot: " + str(lot(price, sl, pair)) + "\nD1: " + d1 + "\nSession: " + ("OK" if sess else "WAIT") + "\nConfirm on M5 then M1!")
+    else:
+        if not at_zone:
+            continue
+        aid = zid + "_retest"
+        if now - alerts.get(aid, 0) < COOLDOWN:
+            continue
+        if z["type"] == "SUPPLY":
+            tdir = "BUY"
+            sl = z["top"] - PIPS * 3
+            tp = z["top"] + PIPS * 9
+            trend_ok = d1 == "BULLISH"
+            note = "Broken Supply retested - Old Resistance now Support - Nathan BUYS"
         else:
-            validity = "WEAK SETUP - check notes"
-
-        trend_align = "YES" if trend_ok else "NO - D1 is " + d1_trend + " but trade is " + trade_dir
-
-        alerted[alert_id] = now
-        state["alerted"] = alerted
-
-        send_telegram(
-            "RETEST ALERT - " + pair + "\n\n"
-            + validity + "\n"
-            + trade_dir + " OPPORTUNITY\n\n"
-            + note + "\n\n"
-            "Zone: " + zlabel + "\n"
-            "Rating: " + star_display + " (" + str(stars) + "/5)\n"
-            "Touches: " + str(zone["touches"]) + " (Nathan prefers 2-3)\n\n"
-            "Zone Top: " + str(round(zone["top"], 5)) + "\n"
-            "Zone Bottom: " + str(round(zone["bottom"], 5)) + "\n"
-            "Price: " + str(round(price, 5)) + "\n\n"
-            "TREND (Nathan method)\n"
-            "D1: " + d1_trend + "\n"
-            "H4: " + h4_trend + "\n"
-            "Aligned: " + trend_align + "\n\n"
-            "SESSION: " + session_msg + "\n"
-            "NEWS: " + news_msg + "\n\n"
-            "RISK MANAGEMENT\n"
-            "Stop Loss: " + str(round(sl, 5)) + "\n"
-            "Take Profit: " + str(round(tp, 5)) + "\n"
-            "Lot Size: " + str(lot) + "\n"
-            "Risk: $" + str(risk_usd) + "\n\n"
-            "CHECKLIST\n"
-            "Trend aligned: " + ("YES" if trend_ok else "NO - SKIP") + "\n"
-            "Good session: " + ("YES" if session_ok else "NO - WAIT") + "\n"
-            "News clear: " + ("YES" if news_ok else "NO - WAIT") + "\n"
-            "Zone strong: " + ("YES" if stars >= 3 else "NO - WEAK") + "\n\n"
-            "Confirm on M5 then enter on M1!"
-        )
-        print("RETEST sent: " + pair + " " + zlabel + " " + trade_dir)
+            tdir = "SELL"
+            sl = z["bottom"] + PIPS * 3
+            tp = z["bottom"] - PIPS * 9
+            trend_ok = d1 == "BEARISH"
+            note = "Broken Demand retested - Old Support now Resistance - Nathan SELLS"
+        alerts[aid] = now
+        state["alerts"] = alerts
+        valid = "VALID" if trend_ok and sess else "WEAK - check trend and session"
+        msg("RETEST ALERT - " + pair + "\n" + valid + "\n" + tdir + " - " + note + "\nZone: " + label + "\nPrice: " + str(round(price, 5)) + "\nSL: " + str(round(sl, 5)) + "\nTP: " + str(round(tp, 5)) + "\nLot: " + str(lot(price, sl, pair)) + "\nD1: " + d1 + "\nSession: " + ("OK" if sess else "WAIT") + "\nConfirm on M5 then M1!")
 
 def main():
-print(“SD Alert Bot - Nathan Williams Method”)
-print(“Time: “ + str(datetime.now(timezone.utc)))
-if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-    print("ERROR: Missing environment variables")
-    return
-
-state = load_state()
-
+print(“Bot starting - “ + str(datetime.now(timezone.utc)))
+if not TOKEN or not CHAT:
+print(“ERROR: Missing env vars”)
+return
+state = load()
 for pair, ticker in PAIRS.items():
-    try:
-        scan_pair(pair, ticker, state)
-    except Exception as e:
-        print("Error scanning " + pair + ": " + str(e))
-
-save_state(state)
-print("Scan complete.")
+try:
+scan(pair, ticker, state)
+except Exception as e:
+print(“Error “ + pair + “: “ + str(e))
+save(state)
+print(“Done”)
 
 if name == “**main**”:
 main()

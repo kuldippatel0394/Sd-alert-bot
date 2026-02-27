@@ -16,6 +16,7 @@ run: |
   python3 -c "import base64; open('b.py','w').write(base64.b64decode(open('bot.b64').read()).decode())"
   python3 b.py
 
+
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

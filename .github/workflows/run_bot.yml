@@ -12,18 +12,14 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install yfinance requests pandas numpy
-      - name: Fix quotes in bot file
+      - name: Write bot code
         run: |
           python3 -c "
-          import re
-          with open('sd_alert_bot.py','r') as f:
-              code = f.read()
+          code = open('sd_alert_bot.py').read()
           code = code.replace(chr(8220),chr(34)).replace(chr(8221),chr(34)).replace(chr(8216),chr(39)).replace(chr(8217),chr(39))
-          with open('sd_alert_bot.py','w') as f:
-              f.write(code)
-          print('Quotes fixed')
+          open('sd_alert_bot_clean.py','w').write(code)
           "
-      - run: python3 sd_alert_bot.py
+      - run: python3 sd_alert_bot_clean.py
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

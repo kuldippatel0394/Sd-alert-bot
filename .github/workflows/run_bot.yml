@@ -1,21 +1,21 @@
 name: SD Alert Bot
 on:
-schedule:
-- cron: ‘*/5 * * * *’
-workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 jobs:
-run:
-runs-on: ubuntu-latest
-timeout-minutes: 4
-steps:
-- uses: actions/checkout@v4
-- uses: actions/setup-python@v4
-with:
-python-version: ‘3.11’
-- run: pip install yfinance requests numpy pandas
-- run: base64 -d bot.b64 > bot.py && python bot.py
-env:
-TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
-GIST_ID: ${{ secrets.GIST_ID }}
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install yfinance requests numpy pandas
+      - run: base64 -d bot.b64 > bot.py && python bot.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID: ${{ secrets.GIST_ID }}
